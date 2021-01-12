@@ -9,10 +9,11 @@
     "lint_check": "vue-cli-service lint --no-fix"
   },
   "dependencies": {
+    "axios": "^0.21.0",
+    "buefy": "^0.9.4",
     "core-js": "^3.6.5",
     "vue": "^2.6.11",
-    "axios": "^0.21.0",
-    "buefy": "^0.9.4"
+    "vue-router": "^3.4.9"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",
