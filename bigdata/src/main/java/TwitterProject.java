@@ -6,6 +6,7 @@ public class TwitterProject {
 		ProgramDriver pgd = new ProgramDriver();
 		int exitCode = -1;
 		try {
+			pgd.addClass("parser", parser.TweetParser.class, "parse tweets");
 			pgd.addClass("hastags", hastags.Hastags.class, "use hastags");
 			pgd.addClass("users", users.Users.class, "users");
 			pgd.addClass("influenceurs", influenceurs.Influenceurs.class, "influenceurs");
