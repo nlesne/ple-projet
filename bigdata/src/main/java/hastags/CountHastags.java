@@ -42,7 +42,6 @@ public class CountHastags {
 						context.write(new Text(word), new IntWritable(1));
 				}
 			}
-			context.write(new Text(hastag), new IntWritable(0));
 		}
 	}
 

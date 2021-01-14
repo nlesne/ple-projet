@@ -22,31 +22,27 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 public class UserHastag {
-  public static class CountOneHastagCombiner extends Reducer<LongWritable, Tweet, LongWritable, IntWritable> {
+	public static class HastagReducer extends Reducer<LongWritable, Tweet, Text, LongWritable> {        
+		private static String hastag = " ";
+		
+		@Override
+		protected void setup(Reducer<LongWritable, Tweet, Text, LongWritable>.Context context)
+				throws IOException, InterruptedException {
+			this.hastag = context.getConfiguration().get("hastag", " ");
+		} 
 
-    public void reduce(LongWritable key, Iterable<Tweet> values, Context context)
-        throws IOException, InterruptedException {
-      for (Tweet tweet : values) {
-        ArrayList<String> listHashtag = tweet.getHastags();
-        int size = listHashtag.size();
-        Long user = tweet.getUserId();
-        context.write(new LongWritable(user), new IntWritable(size));
-      }
-    }
-  }
-
-  public static class CountHastagReducer extends Reducer<LongWritable, IntWritable, LongWritable, IntWritable> {
-
-    public void reduce(LongWritable key, Iterable<IntWritable> values, Context context)
-        throws IOException, InterruptedException {
-      int sum = 0;
-      for (IntWritable val : values) {
-        sum += val.get();
-      }
-      if (sum != 0)
-        context.write(key, new IntWritable(sum));
-    }
-  }
+		public void reduce(LongWritable key, Iterable<Tweet> values, Context context) throws IOException, InterruptedException {
+			for(Tweet tweet : values){
+				ArrayList<String> listHashtag = tweet.getHastags();
+				int size = listHashtag.size();
+				for(int i=0; i<size; i++){
+					String word = listHashtag.get(i);
+					if(word == hastag)
+						context.write(new Text(word), new LongWritable(tweet.getUserId()));
+				}
+			}
+		}
+	}
 
   public static void main(String[] args) throws Exception {
     Configuration conf = new Configuration();
@@ -68,11 +64,8 @@ public class UserHastag {
     job.setMapOutputKeyClass(LongWritable.class);
     job.setMapOutputValueClass(IntWritable.class);
 
-    // Combiner
-    job.setCombinerClass(CountOneHastagCombiner.class);
-
     // Reducer
-    job.setReducerClass(CountHastagReducer.class);
+    job.setReducerClass(HastagReducer.class);
     job.setOutputKeyClass(LongWritable.class);
     job.setOutputValueClass(IntWritable.class);
 
