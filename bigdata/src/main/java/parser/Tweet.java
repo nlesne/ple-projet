@@ -15,6 +15,8 @@ public class Tweet implements Writable, Cloneable {
   long user_id;
   int retweet_count;
   ArrayList<String> hashtags;
+  String country;
+  String language; 
 
   public Tweet() {
   }
@@ -24,7 +26,18 @@ public class Tweet implements Writable, Cloneable {
     this.text = text;
     this.user_id = user_id;
     this.retweet_count = retweet_count;
-    this.hashtags = new ArrayList<>(hashtags);
+    this.hashtags = new ArrayList<String>(hashtags);
+  }
+
+  public Tweet(String created_at, String text, long user_id, int retweet_count,
+    ArrayList<String> hashtags, String country, String language) {
+      this.created_at = new String(created_at);
+      this.text = text;
+      this.user_id = user_id;
+      this.retweet_count = retweet_count;
+      this.hashtags = new ArrayList<String>(hashtags);
+      this.country = country;
+      this.language = language;
   }
 
   public Tweet clone() {
@@ -44,6 +57,8 @@ public class Tweet implements Writable, Cloneable {
     out.writeLong(user_id);
     out.writeInt(retweet_count);
     out.writeInt(hashtags.size());
+    out.writeBytes(country);
+    out.writeBytes(language);
     for (String hashtag : hashtags) {
       out.writeBytes(hashtag);
     }
@@ -55,8 +70,10 @@ public class Tweet implements Writable, Cloneable {
     text = in.readLine();
     user_id = in.readLong();
     retweet_count = in.readInt();
+    country = in.readLine();
+    language = in.readLine();
     int hashtagCount = in.readInt();
-    hashtags = new ArrayList<>();
+    hashtags = new ArrayList<String>();
     for (int i = 0; i < hashtagCount; i++) {
       hashtags.add(in.readLine());
     }
@@ -75,4 +92,13 @@ public class Tweet implements Writable, Cloneable {
         + "hashtags : " + hashtags.toString()
         ;
   }
+
+
+public String getCreateAt(){return this.created_at;}
+public String getText(){return this.text;}
+public long getUserId(){return this.user_id;}
+public int getRetweetCount(){return this.retweet_count;}
+public ArrayList<String> getHastags(){return this.hashtags;}
+public String getCountry(){return this.country;}
+public String getLanguage(){return this.language;}
 }

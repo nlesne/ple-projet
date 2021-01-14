@@ -10,6 +10,7 @@ public class Hastags {
 		int exitCode = -1;
 		try {
 			pgd.addClass("k", hastags.KHastags.class, "...");
+			pgd.addClass("count", hastags.CountHastags.class, "...");
 			exitCode = pgd.run(args);
 		} catch (Throwable e1)  {
 			e1.printStackTrace();
