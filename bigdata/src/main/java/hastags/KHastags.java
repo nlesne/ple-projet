@@ -1,6 +1,7 @@
 package hastags;
 
 import parser.*;
+import parser.TweetParser.TPMapper;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -171,26 +172,4 @@ public class KHastags {
 		  res = job.waitForCompletion(true) ? 0 : 1;
 		  System.exit(res);
   }
-  
-  public static class TPMapper extends Mapper<Object, Text, LongWritable, Tweet> {
-
-    @Override
-    public void map(Object key, Text value, Context context)
-        throws IOException, InterruptedException {
-
-      long tweet_id = 1;
-      String created_at = "coucou";
-      String text = "coucou";
-      long user_id = 1;
-      int retweet_count = 1;
-
-      ArrayList<String> hashtags = new ArrayList<String>();
-
-      Tweet tweet = new Tweet(created_at, text, user_id, retweet_count, hashtags);
-
-      context.write(new LongWritable(tweet_id), tweet);
-    }
-
-  }
-
 }

@@ -1,8 +1,5 @@
 package parser;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import java.io.IOException;
 import java.util.ArrayList;
 import org.apache.hadoop.conf.Configuration;
@@ -19,6 +16,9 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class TweetParser extends Configured implements Tool {
 
   public static class TPMapper extends Mapper<Object, Text, LongWritable, Tweet> {
@@ -26,37 +26,40 @@ public class TweetParser extends Configured implements Tool {
     @Override
     public void map(Object key, Text value, Context context)
         throws IOException, InterruptedException {
-      JsonParser parser = new JsonParser();
-
-      Object obj = parser.parse(value.toString());
-      JsonObject jsonObject = (JsonObject) obj;
-
-      long tweet_id = jsonObject.get("id").getAsLong();
-      String created_at = jsonObject.get("created_at").getAsString();
-      String text = jsonObject.get("text").getAsString();
-      long user_id = jsonObject.getAsJsonObject("user").get("id").getAsLong();
-      int retweet_count = jsonObject.get("retweet_count").getAsInt();
-
-      ArrayList<String> hashtags = new ArrayList<>();
-      JsonArray jsonHashtags = jsonObject.getAsJsonObject("entities").getAsJsonArray("hashtags");
-      for (int i = 0; i < jsonHashtags.size(); i++) {
-        hashtags.add(jsonHashtags.get(i).getAsJsonObject().get("text").getAsString());
+    	
+      JsonNode root = new ObjectMapper().readTree(value.toString());
+      
+      if (root.has("delete")) {
+    	  return;
       }
 
-      Tweet tweet = new Tweet(created_at, text, user_id, retweet_count, hashtags);
-
+      long tweet_id = root.get("id").asLong();
+      String created_at = root.get("created_at").asText();
+      String text = root.get("text").asText();
+      text = text.replace("\n", "");
+      long user_id = root.get("user").get("id").asLong();
+      int retweet_count = root.get("retweet_count").asInt();
+      String country = new String("");
+      if (root.hasNonNull("place")) {
+    	  country = root.get("place").get("country").asText();
+      }
+      String lang = root.get("lang").asText();
+      ArrayList<String> hashtags = new ArrayList<>(root.get("entities").get("hashtags").findValuesAsText("text"));
+      
+      Tweet tweet = new Tweet(created_at, text, user_id, retweet_count, country, lang, hashtags);
       context.write(new LongWritable(tweet_id), tweet);
     }
 
   }
+  
 
   @Override
   public int run(String[] args) throws Exception {
     Configuration conf = getConf();
     Job job = Job.getInstance(conf, "Parse Tweet");
     job.setJarByClass(TweetParser.class);
-    job.setMapperClass(TPMapper.class);
     job.setNumReduceTasks(0);
+    job.setMapperClass(TPMapper.class);
     job.setOutputKeyClass(LongWritable.class);
     job.setOutputValueClass(Tweet.class);
     job.setInputFormatClass(TextInputFormat.class);

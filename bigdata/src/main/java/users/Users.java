@@ -8,7 +8,7 @@ public class Users {
 		ProgramDriver pgd = new ProgramDriver();
 		int exitCode = -1;
 		try {
-			//pgd.addClass("", users.class, "");
+			pgd.addClass("countTweets", CountTweet.class, "");
 			exitCode = pgd.run(args);
 		} catch (Throwable e1)  {
 			e1.printStackTrace();
