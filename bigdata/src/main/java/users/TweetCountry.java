@@ -46,7 +46,7 @@ public class TweetCountry {
     Job job = Job.getInstance(conf, "TwitterProject");
 		job.setNumReduceTasks(1);
 
-		job.setJarByClass(AllHastagUser.class);
+		job.setJarByClass(TweetCountry.class);
 
 		job.setInputFormatClass(TextInputFormat.class);
 		TextInputFormat.addInputPath(job, new Path(args[1]));

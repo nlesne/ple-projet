@@ -54,7 +54,7 @@ public class TweetLanguage {
     Job job = Job.getInstance(conf, "TwitterProject");
 		job.setNumReduceTasks(1);
 
-		job.setJarByClass(AllHastagUser.class);
+		job.setJarByClass(TweetLanguage.class);
 
 		job.setInputFormatClass(TextInputFormat.class);
 		TextInputFormat.addInputPath(job, new Path(args[1]));

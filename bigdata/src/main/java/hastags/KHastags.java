@@ -145,7 +145,6 @@ public class KHastags {
 		TextInputFormat.addInputPath(job, new Path(args[1]));
 		
 		//Mapper
-		//job.setJarByClass(TweetParser.class);
 		job.setMapperClass(TPMapper.class);
     job.setMapOutputKeyClass(LongWritable.class);
 		job.setMapOutputValueClass(Tweet.class);

@@ -56,7 +56,7 @@ public class UserHastag {
     Job job = Job.getInstance(conf, "TwitterProject");
     job.setNumReduceTasks(1);
 
-    job.setJarByClass(CountHastags.class);
+    job.setJarByClass(UserHastag.class);
 
     job.setInputFormatClass(TextInputFormat.class);
     TextInputFormat.addInputPath(job, new Path(args[1]));

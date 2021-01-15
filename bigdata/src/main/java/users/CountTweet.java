@@ -60,7 +60,7 @@ public class CountTweet {
     Job job = Job.getInstance(conf, "TwitterProject");
 		job.setNumReduceTasks(1);
 
-		job.setJarByClass(AllHastagUser.class);
+		job.setJarByClass(CountTweet.class);
 
 		job.setInputFormatClass(TextInputFormat.class);
 		TextInputFormat.addInputPath(job, new Path(args[1]));
