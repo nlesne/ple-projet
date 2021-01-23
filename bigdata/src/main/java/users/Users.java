@@ -9,6 +9,8 @@ public class Users {
 		int exitCode = -1;
 		try {
 			pgd.addClass("countTweets", CountTweet.class, "");
+			pgd.addClass("tweetCountry", TweetCountry.class, "");
+			pgd.addClass("tweetLang", TweetLanguage.class, "");
 			exitCode = pgd.run(args);
 		} catch (Throwable e1)  {
 			e1.printStackTrace();
