@@ -63,9 +63,9 @@ public class UserHashtag {
   public static void main(String[] args) throws Exception {
     Configuration conf = new Configuration();
 
-    String hastag = "";
-    hastag = args[0];
-    conf.set("hastag", hastag);
+    String hashtag = "";
+    hashtag = args[0];
+    conf.set("hashtag", hashtag);
 
     Job job = Job.getInstance(conf, "TwitterProject");
     job.setNumReduceTasks(1);
@@ -87,7 +87,7 @@ public class UserHashtag {
     job.setOutputValueClass(IntWritable.class);
 
     job.setOutputFormatClass(TextOutputFormat.class);
-    FileOutputFormat.setOutputPath(job, new Path(args[2]));
+    FileOutputFormat.setOutputPath(job, new Path(args[2] + "/" + hashtag));
     System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
 
