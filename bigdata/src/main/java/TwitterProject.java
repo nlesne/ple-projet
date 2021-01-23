@@ -7,6 +7,7 @@ public class TwitterProject {
 		int exitCode = -1;
 		try {
 			pgd.addClass("parser", parser.TweetParser.class, "parse tweets");
+			pgd.addClass("hashtags", hashtags.Hashtags.class, "hashtags");
 			pgd.addClass("users", users.Users.class, "users");
 			pgd.addClass("influenceurs", influenceurs.Influenceurs.class, "influenceurs");
 			exitCode = pgd.run(args);

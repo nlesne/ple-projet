@@ -1,4 +1,4 @@
-package hastags;
+package hashtags;
 
 import parser.*;
 import parser.TweetParser.TPMapper;
@@ -23,7 +23,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-public class CountHastags {
+public class CountHashtags {
 
 	public static class CountOneHastagCombiner extends Reducer<LongWritable, Tweet, Text, IntWritable> {        
 		private static String hastag = " ";
@@ -68,7 +68,7 @@ public class CountHastags {
         Job job = Job.getInstance(conf, "TwitterProject");
 		job.setNumReduceTasks(1);
 
-		job.setJarByClass(CountHastags.class);
+		job.setJarByClass(CountHashtags.class);
 
 		job.setInputFormatClass(TextInputFormat.class);
 		TextInputFormat.addInputPath(job, new Path(args[1]));

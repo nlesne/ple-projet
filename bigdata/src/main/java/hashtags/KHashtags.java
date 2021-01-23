@@ -1,4 +1,4 @@
-package hastags;
+package hashtags;
 
 import parser.*;
 import parser.TweetParser.TPMapper;
@@ -30,7 +30,7 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
-public class KHastags {
+public class KHashtags {
 
 	public static class Hastags implements Writable {
 		
@@ -149,7 +149,7 @@ public class KHastags {
     job.setMapOutputKeyClass(LongWritable.class);
 		job.setMapOutputValueClass(Tweet.class);
 		
-		job.setJarByClass(KHastags.class);
+		job.setJarByClass(KHashtags.class);
 		//Combiner
 		job.setCombinerClass(CountOneHastagCombiner.class);
 		job.setCombinerClass(CountAllHastagCombiner.class);
