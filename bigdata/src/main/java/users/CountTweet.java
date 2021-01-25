@@ -1,86 +1,93 @@
-
 package users;
 
+import java.util.ArrayList;
 import java.io.IOException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import parser.Tweet;
-import parser.TweetParser.TPMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class CountTweet {
+	public static class TPMapper extends Mapper<Object, Text, Text, IntWritable> {
 
-	public static class UserCombiner extends Reducer<LongWritable, Tweet, LongWritable, IntWritable> {        
-		private long user;
-		
-		@Override
-		protected void setup(Reducer<LongWritable, Tweet, LongWritable, IntWritable>.Context context)
-				throws IOException, InterruptedException {
-          this.user = context.getConfiguration().getLong("user", 0);
-		} 
+	    @Override
+	    public void map(Object key, Text value, Context context)
+	        throws IOException, InterruptedException {
+	    	
+	      JsonNode root = new ObjectMapper().readTree(value.toString());
+	      
+	      if (root.has("delete")) {
+	    	  return;
+	      }
+	      
+	      String nameUser = context.getConfiguration().get("nameUser");
+	      
+	      String user = root.get("user").get("name").asText();
+	      if (user.equals(nameUser))
+	    	  context.write(new Text(user), new IntWritable(1));
+	    }
+	  }
+	
+	public static class HashtagCombiner extends Reducer<Text, IntWritable, Text, IntWritable> {        	
 
-    public void reduce(LongWritable key, Iterable<Tweet> values, Context context)
-     throws IOException, InterruptedException {
-    	for(Tweet tweet : values){
-    		if(tweet.getUserId() == user) {
-    			System.out.println(tweet);
-    			context.write(new LongWritable(tweet.getUserId()), new IntWritable(1));
-    		}
-    	}
-    }
-	}
-
-	public static class UserReducer extends Reducer<LongWritable,IntWritable,LongWritable,IntWritable> {
-
-    public void reduce(LongWritable key, Iterable<IntWritable> values,Context context) 
-    throws IOException, InterruptedException {
-      int sum = 0;
-		  for (IntWritable val : values)
-        sum += val.get();
-      context.write(key, new IntWritable(sum));
-    }
+		public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+			int sum = 0;
+			for (IntWritable value : values){
+				sum += value.get();
+			}
+			context.write(key, new IntWritable(sum));
+		}
 	}
 	
+	public static class HashtagReducer extends Reducer<Text, IntWritable, Text, IntWritable> {        	
+
+		public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+			int sum = 0;
+			for (IntWritable value : values){
+				sum += value.get();
+			}
+			context.write(key, new IntWritable(sum));
+		}
+	}
+
   public static void main(String[] args) throws Exception {
     Configuration conf = new Configuration();
-    
-		long user = 0;
-		user = Long.parseUnsignedLong(args[0]);
-		conf.setLong("user", user);
 
+    String nameUser = "";
+    nameUser = args[0];
+    conf.set("nameUser", nameUser);
 
     Job job = Job.getInstance(conf, "TwitterProject");
-		job.setNumReduceTasks(1);
+    job.setNumReduceTasks(1);
 
-		job.setJarByClass(CountTweet.class);
+    job.setJarByClass(CountTweet.class);
 
-		job.setInputFormatClass(TextInputFormat.class);
-		TextInputFormat.addInputPath(job, new Path(args[1]));
+    job.setInputFormatClass(TextInputFormat.class);
+    TextInputFormat.addInputPath(job, new Path(args[1]));
 
-		//Mapper
+    // Mapper
     job.setMapperClass(TPMapper.class);
-    job.setMapOutputKeyClass(LongWritable.class);
-    job.setMapOutputValueClass(Tweet.class);
-        
-		//Combiner
-		job.setCombinerClass(UserCombiner.class);
+    job.setMapOutputKeyClass(Text.class);
+    job.setMapOutputValueClass(IntWritable.class);
 
-		//Reducer
-		job.setReducerClass(UserReducer.class);
-		job.setOutputKeyClass(LongWritable.class);
-		job.setOutputValueClass(IntWritable.class);
+    job.setCombinerClass(HashtagCombiner.class);
+    // Reducer
+    job.setReducerClass(HashtagReducer.class);
+    job.setOutputKeyClass(Text.class);
+    job.setOutputValueClass(IntWritable.class);
 
-    job.setOutputFormatClass(TextOutputFormat.class);		
-    FileOutputFormat.setOutputPath(job, new Path(args[2] + "/" + user));
+    job.setOutputFormatClass(TextOutputFormat.class);
+    FileOutputFormat.setOutputPath(job, new Path(args[2] + "/" + nameUser));
     System.exit(job.waitForCompletion(true) ? 0 : 1);
-	}
+  }
 
 }

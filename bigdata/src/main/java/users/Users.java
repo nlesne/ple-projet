@@ -8,9 +8,10 @@ public class Users {
 		ProgramDriver pgd = new ProgramDriver();
 		int exitCode = -1;
 		try {
-			pgd.addClass("countTweets", CountTweet.class, "");
-			pgd.addClass("tweetCountry", TweetCountry.class, "");
-			pgd.addClass("tweetLang", TweetLanguage.class, "");
+			pgd.addClass("hash", AllHastagUser.class,"");
+			pgd.addClass("count", CountTweet.class, "");
+			pgd.addClass("country", TweetCountry.class, "");
+			pgd.addClass("lang", TweetLanguage.class, "");
 			exitCode = pgd.run(args);
 		} catch (Throwable e1)  {
 			e1.printStackTrace();
