@@ -87,25 +87,19 @@ public class KHashtags {
 	public static class TopKMapper extends Mapper<LongWritable, Text, NullWritable, Hashtags> {
 
 		private TreeMap<Integer, String> topk = new TreeMap<Integer, String>();
-    private int k = 10;
-    
-    @Override
-		protected void setup(Mapper<LongWritable, Text, NullWritable, Hashtags>.Context context)
-				throws IOException, InterruptedException {
-			this.k = context.getConfiguration().getInt("k", 10);
-		}
 
 		@Override
 		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+			int k = context.getConfiguration().getInt("k", 5);
 			String[] tokens = value.toString().split("\\s+");
 			int tot = Integer.valueOf(tokens[1]);
 			String name = tokens[0];
 			topk.put(tot, name);
-			
+
 			while (topk.size() > k)
 				topk.remove(topk.firstKey());
 
-			for(Map.Entry<Integer,String> pair : topk.entrySet()) {
+			for (Map.Entry<Integer, String> pair : topk.entrySet()) {
 				Hashtags h = new Hashtags(pair.getValue(), pair.getKey());
 				context.write(NullWritable.get(), h);
 			}
@@ -113,26 +107,22 @@ public class KHashtags {
 	}
 
 	public static class TopKReducer extends Reducer<NullWritable, Hashtags, IntWritable, Text> {
-    private int k = 10;
-    
-		protected void setup(Mapper<NullWritable, Hashtags, IntWritable, Text>.Context context)
-				throws IOException, InterruptedException {
-			this.k = context.getConfiguration().getInt("k", 10);
-		}
 
 		@Override
-		protected void reduce(NullWritable key, Iterable<Hashtags> values, Reducer<NullWritable, Hashtags, IntWritable, Text>.Context context)
+		protected void reduce(NullWritable key, Iterable<Hashtags> values,
+				Reducer<NullWritable, Hashtags, IntWritable, Text>.Context context)
 				throws IOException, InterruptedException {
 			TreeMap<Integer, String> topk = new TreeMap<Integer, String>();
-			for(Hashtags cp : values) {
-				//insertion de la ville
+			int k = context.getConfiguration().getInt("k", 5);
+			for (Hashtags cp : values) {
+				// insertion de la ville
 				topk.put(cp.total, cp.name);
 				// on conserve les k plus grandes
-				while(topk.size() > k) {
+				while (topk.size() > k) {
 					topk.remove(topk.firstKey());
 				}
 			}
-			
+
 			// ecrire les k plus grandes
 			for (Map.Entry<Integer, String> v : topk.entrySet()) {
 				context.write(new IntWritable(v.getKey()), new Text(v.getValue()));
@@ -141,9 +131,9 @@ public class KHashtags {
 	}
 
 	public static void main(String[] args) throws Exception {
-    Configuration conf = new Configuration();
+		Configuration conf = new Configuration();
 
-		//////////////Job 1
+		////////////// Job 1
 		Job job = Job.getInstance(conf);
 		job.setNumReduceTasks(1);
 
@@ -164,18 +154,17 @@ public class KHashtags {
 		FileOutputFormat.setOutputPath(job, outputPath);
 		job.waitForCompletion(true);
 
+		////////// Job 2
+		Configuration conf2 = new Configuration();
 
-		//////////Job 2
-    Configuration conf2 = new Configuration();
-    
-    int k = 0;
+		int k = 0;
 		k = Integer.parseInt(args[0]);
-    conf2.setInt("k", k);
-    
+		conf2.setInt("k", k);
+
 		Job job2 = Job.getInstance(conf2);
 		job2.setNumReduceTasks(1);
 
-		TextInputFormat.addInputPath(job2, outputPath) ;
+		TextInputFormat.addInputPath(job2, outputPath);
 
 		job2.setJarByClass(KHashtags.class);
 
@@ -188,8 +177,7 @@ public class KHashtags {
 		job2.setOutputKeyClass(IntWritable.class);
 		job2.setOutputValueClass(Text.class);
 
-		FileOutputFormat.setOutputPath(job2, new Path(args[2]));
+		FileOutputFormat.setOutputPath(job2, new Path(args[2] + "/" + k));
 		System.exit(job2.waitForCompletion(true) ? 0 : 1);
 	}
 }
-
