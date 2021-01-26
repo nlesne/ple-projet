@@ -26,7 +26,10 @@
     </b-sidebar>
     <div class="body">
       <div class="title">Résultat : </div>
-      <div id="resultat">hola</div>
+      <ul><li v-for="ele in resultat" :key="ele">
+        <div v-if="val"> {{ele.name}} : {{ele.val}} </div>
+        <div v-else>  {{ele.name}} </div>
+      </li></ul>
     </div>
   </div>
 </template>
@@ -35,7 +38,14 @@
 export default {
   name: '',
   props: {},
-  data() {},
+  data() {
+    return {
+      val: true,
+      resultat: {
+        type: Object,
+      },
+    };
+  },
   components: {},
   methods: {
     modifyBody: function(res) {
