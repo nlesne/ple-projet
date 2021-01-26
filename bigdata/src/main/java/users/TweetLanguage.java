@@ -30,11 +30,7 @@ public class TweetLanguage {
       if (root.has("delete")) {
     	  return;
       }
-      String lang = new String("");
-      if (root.hasNonNull("place")) {
-    	  lang = root.get("place").get("country").asText();
-      }
-      //String lang = root.get("lang").asText();
+      String lang = root.get("lang").asText();
       context.write(new Text(lang), new IntWritable(1));
     }
   }
