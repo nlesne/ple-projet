@@ -6,7 +6,7 @@ const hbase = require('hbase');
 
 const app = express();
 app.use(bodyParser.json());
-app.use(cors({origin: [serverConfig.client_url]}));
+app.use(cors({origin: [config.client_url]}));
 
 app.use('/api/users', require('./routes/users'));
 app.use('/api/hashtags', require('./routes/hashtags'));
