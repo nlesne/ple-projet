@@ -67,7 +67,7 @@ public class TweetCountry {
             String rowPrefix = context.getConfiguration().get("rowDate");
             String rowName = rowPrefix + "-" + key.toString();
 			Put put = new Put(rowName.getBytes());
-			put.addColumn(Bytes.toBytes(Utils.famName), Bytes.toBytes(Utils.colName), Bytes.toBytes(sum));
+			put.addColumn(Bytes.toBytes(Utils.famName), Bytes.toBytes(Utils.colName), Bytes.toBytes(Integer.toString(sum)));
 			context.write(new Text(rowName), put);
 		}
 	}
