@@ -16,7 +16,8 @@
     "express": "^4.17.1",
     "body-parser": "^1.19.0",
     "express-promise-router": "^4.0.1",
-    "hbase": "^0.6.1"
+    "hbase": "^0.6.1",
+    "cors": "^2.8.5"
   },
   "devDependencies": {
     "eslint": "^7.13.0",
