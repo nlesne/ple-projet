@@ -10,6 +10,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
@@ -54,5 +55,12 @@ public class Utils {
 		Get get = new Get(Bytes.toBytes(row));
 		Result res = table.get(get);
 		return res.getValue(Bytes.toBytes(famName), Bytes.toBytes(colName));
+	}
+	
+	public static void configRowPrefix(Configuration conf, String path) {
+		Path inputPath = new Path(path);
+		String[] dateParts = inputPath.getName().split("_");
+		String rowDate = dateParts[1] + "_" + dateParts[2];
+		conf.set("rowDate", rowDate);
 	}
 }

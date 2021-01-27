@@ -4,21 +4,29 @@ import java.util.ArrayList;
 import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
+import org.apache.hadoop.hbase.mapreduce.TableReducer;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class CountHashtags {
-	public static class TPMapper extends Mapper<Object, Text, Text, IntWritable> {
+import hbase.Utils;
 
+public class CountHashtags {
+	private final static String tableName = Utils.tablePrefix + "countHashtags";
+
+	
+	public static class TPMapper extends Mapper<Object, Text, Text, IntWritable> {
 		@Override
 		public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
 
@@ -27,12 +35,11 @@ public class CountHashtags {
 			if (root.has("delete")) {
 				return;
 			}
-
-			String hashtag = context.getConfiguration().get("hashtag");
-
+			
 			ArrayList<String> hashtags = new ArrayList<>(root.get("entities").get("hashtags").findValuesAsText("text"));
-			if (hashtags.contains(hashtag))
+			for (String hashtag : hashtags) {
 				context.write(new Text(hashtag), new IntWritable(1));
+			}
 		}
 	}
 
@@ -48,7 +55,7 @@ public class CountHashtags {
 		}
 	}
 
-	public static class HashtagReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+	public static class HashtagReducer extends TableReducer<Text, IntWritable, Text> {
 
 		public void reduce(Text key, Iterable<IntWritable> values, Context context)
 				throws IOException, InterruptedException {
@@ -56,16 +63,22 @@ public class CountHashtags {
 			for (IntWritable value : values) {
 				sum += value.get();
 			}
-			context.write(key, new IntWritable(sum));
+			String rowPrefix = context.getConfiguration().get("rowDate");
+            String rowName = rowPrefix + "-" + key.toString();
+			Put put = new Put(rowName.getBytes());
+			put.addColumn(Bytes.toBytes(Utils.famName), Bytes.toBytes(Utils.colName), Bytes.toBytes(sum));
+			context.write(new Text(rowName), put);
 		}
 	}
 
 	public static void main(String[] args) throws Exception {
 		Configuration conf = new Configuration();
-
-		String hashtag = "";
-		hashtag = args[0];
-		conf.set("hashtag", hashtag);
+	
+		Utils.configRowPrefix(conf, args[0]);
+		
+		Configuration hbaseConf  = HBaseConfiguration.create();
+		Connection connection = ConnectionFactory.createConnection(hbaseConf);
+		Utils.createTable(connection, tableName);
 
 		Job job = Job.getInstance(conf, "TwitterProject");
 		job.setNumReduceTasks(1);
@@ -73,7 +86,7 @@ public class CountHashtags {
 		job.setJarByClass(CountHashtags.class);
 
 		job.setInputFormatClass(TextInputFormat.class);
-		TextInputFormat.addInputPath(job, new Path(args[1]));
+		TextInputFormat.addInputPath(job, new Path(args[0]));
 
 		// Mapper
 		job.setMapperClass(TPMapper.class);
@@ -84,10 +97,9 @@ public class CountHashtags {
 		// Reducer
 		job.setReducerClass(HashtagReducer.class);
 		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(IntWritable.class);
+		job.setOutputValueClass(Put.class);
 
-		job.setOutputFormatClass(TextOutputFormat.class);
-		FileOutputFormat.setOutputPath(job, new Path(args[2] + "/" + hashtag));
+		TableMapReduceUtil.initTableReducerJob(tableName, HashtagReducer.class, job);
 		System.exit(job.waitForCompletion(true) ? 0 : 1);
 	}
 

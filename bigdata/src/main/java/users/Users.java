@@ -8,7 +8,7 @@ public class Users {
 		ProgramDriver pgd = new ProgramDriver();
 		int exitCode = -1;
 		try {
-			pgd.addClass("hash", AllHashtagUser.class,"");
+			pgd.addClass("hashtags", AllHashtagUser.class,"");
 			pgd.addClass("count", CountTweet.class, "");
 			pgd.addClass("country", TweetCountry.class, "");
 			pgd.addClass("lang", TweetLanguage.class, "");

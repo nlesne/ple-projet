@@ -1,15 +1,23 @@
 package hashtags;
 
-import parser.*;
-
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.net.URI;
+
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
+import org.apache.hadoop.hbase.mapreduce.TableReducer;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
@@ -18,15 +26,16 @@ import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import hbase.Utils;
+
 public class KHashtags {
+
+	private final static String tableName = Utils.tablePrefix + "topKHashtags";
 
 	public static class Hashtags implements Writable {
 
@@ -90,7 +99,7 @@ public class KHashtags {
 
 		@Override
 		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-			int k = context.getConfiguration().getInt("k", 5);
+			int k = context.getConfiguration().getInt("k", 100);
 			String[] tokens = value.toString().split("\\s+");
 			int tot = Integer.valueOf(tokens[1]);
 			String name = tokens[0];
@@ -106,16 +115,14 @@ public class KHashtags {
 		}
 	}
 
-	public static class TopKReducer extends Reducer<NullWritable, Hashtags, IntWritable, Text> {
+	public static class TopKReducer extends TableReducer<NullWritable, Hashtags, Text> {
 
 		@Override
-		protected void reduce(NullWritable key, Iterable<Hashtags> values,
-				Reducer<NullWritable, Hashtags, IntWritable, Text>.Context context)
-				throws IOException, InterruptedException {
+		protected void reduce(NullWritable key, Iterable<Hashtags> values, Context context)
+						throws IOException, InterruptedException {
 			TreeMap<Integer, String> topk = new TreeMap<Integer, String>();
-			int k = context.getConfiguration().getInt("k", 5);
+			int k = context.getConfiguration().getInt("k", 100);
 			for (Hashtags cp : values) {
-				// insertion de la ville
 				topk.put(cp.total, cp.name);
 				// on conserve les k plus grandes
 				while (topk.size() > k) {
@@ -125,7 +132,11 @@ public class KHashtags {
 
 			// ecrire les k plus grandes
 			for (Map.Entry<Integer, String> v : topk.entrySet()) {
-				context.write(new IntWritable(v.getKey()), new Text(v.getValue()));
+				String rowPrefix = context.getConfiguration().get("rowDate");
+	            String rowName = rowPrefix + "-" + v.getValue();
+				Put put = new Put(rowName.getBytes());
+				put.addColumn(Bytes.toBytes(Utils.famName), Bytes.toBytes(Utils.colName), Bytes.toBytes(v.getKey()));
+				context.write(new Text(rowName), put);
 			}
 		}
 	}
@@ -150,7 +161,7 @@ public class KHashtags {
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(IntWritable.class);
 
-		Path outputPath = new Path("FirstMapper");
+		Path outputPath = new Path("topKFirstMapper");
 		FileOutputFormat.setOutputPath(job, outputPath);
 		job.waitForCompletion(true);
 
@@ -160,6 +171,12 @@ public class KHashtags {
 		int k = 0;
 		k = Integer.parseInt(args[0]);
 		conf2.setInt("k", k);
+
+		Utils.configRowPrefix(conf2, args[1]);
+
+		Configuration hbaseConf  = HBaseConfiguration.create();
+		Connection connection = ConnectionFactory.createConnection(hbaseConf);
+		Utils.createTable(connection, tableName);
 
 		Job job2 = Job.getInstance(conf2);
 		job2.setNumReduceTasks(1);
@@ -174,10 +191,10 @@ public class KHashtags {
 
 		// Reducer
 		job2.setReducerClass(TopKReducer.class);
-		job2.setOutputKeyClass(IntWritable.class);
-		job2.setOutputValueClass(Text.class);
-
-		FileOutputFormat.setOutputPath(job2, new Path(args[2] + "/" + k));
+		job2.setOutputKeyClass(Text.class);
+		job2.setOutputValueClass(Put.class);
+		
+		TableMapReduceUtil.initTableReducerJob(tableName, TopKReducer.class, job2);
 		System.exit(job2.waitForCompletion(true) ? 0 : 1);
 	}
 }

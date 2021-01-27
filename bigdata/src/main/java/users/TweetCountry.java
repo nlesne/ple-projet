@@ -2,16 +2,11 @@ package users;
 
 import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
-import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
 import org.apache.hadoop.hbase.mapreduce.TableReducer;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -20,17 +15,14 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import hbase.Utils;
 
 public class TweetCountry {
-	private final static String countryTableName = Utils.tablePrefix + "tweetsByCountry";
+	private final static String tableName = Utils.tablePrefix + "tweetsByCountry";
 
 	public static class TPMapper extends Mapper<Object, Text, Text, IntWritable> {
 
@@ -82,20 +74,19 @@ public class TweetCountry {
 
 	public static void main(String[] args) throws Exception {
 		Configuration conf = new Configuration();
+		Utils.configRowPrefix(conf, args[0]);
+		
 		Job job = Job.getInstance(conf, "TwitterProject");
 		job.setNumReduceTasks(1);
 		job.setJarByClass(TweetCountry.class);
 		
 		job.setInputFormatClass(TextInputFormat.class);
-		Path inputPath = new Path(args[0]);
-		String[] dateParts = inputPath.getName().split("_");
-		String rowDate = dateParts[1] + "_" + dateParts[2];
-		conf.set("rowDate", rowDate);
-		TextInputFormat.addInputPath(job, inputPath);
+		
+		TextInputFormat.addInputPath(job, new Path(args[0]));
 		
 		Configuration hbaseConf  = HBaseConfiguration.create();
 		Connection connection = ConnectionFactory.createConnection(hbaseConf);
-		Utils.createTable(connection, countryTableName);
+		Utils.createTable(connection, tableName);
 
 		//Mapper
 		job.setMapperClass(TPMapper.class);
@@ -110,7 +101,7 @@ public class TweetCountry {
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Put.class);
 
-		TableMapReduceUtil.initTableReducerJob(countryTableName, UserReducer.class, job);
+		TableMapReduceUtil.initTableReducerJob(tableName, UserReducer.class, job);
 		System.exit(job.waitForCompletion(true) ? 0 : 1);
 	}
 

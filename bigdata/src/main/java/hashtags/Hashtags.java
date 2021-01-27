@@ -9,8 +9,8 @@ public class Hashtags {
 		ProgramDriver pgd = new ProgramDriver();
 		int exitCode = -1;
 		try {
-			pgd.addClass("k", hashtags.KHashtags.class, "...");
-			pgd.addClass("userHashtags", hashtags.UserHashtag.class, "");
+			pgd.addClass("topk", hashtags.KHashtags.class, "...");
+			pgd.addClass("users", hashtags.UserHashtag.class, "");
 			pgd.addClass("count", hashtags.CountHashtags.class, "...");
 			exitCode = pgd.run(args);
 		} catch (Throwable e1)  {
