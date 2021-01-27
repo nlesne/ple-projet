@@ -11,7 +11,7 @@ router.get('/count', (req, res, next) => {
     req.day = req.query.day;
     next();
 }, controller.getRowsFromTable);
-router.get('/hashtagUsers', (req, res, next) => {
+router.get('/users', (req, res, next) => {
     req.tableName = 'hashtagUsers';
     req.day = req.query.day;
     next();
