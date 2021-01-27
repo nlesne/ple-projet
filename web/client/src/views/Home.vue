@@ -105,6 +105,8 @@ export default {
     },
     // ********************
     onCountHastag: function() {
+      const input = this.countHashtag;
+      console.log(input);
       HastagsService.getHashtagsCount(this.day)
           .then((resp) => {
             this.begin = true;
@@ -115,6 +117,8 @@ export default {
     },
     // ********************
     onUserForHashtag: function() {
+      const input = this.usersForHashtag;
+      console.log(input);
       HastagsService.getUsersWithHashtag(this.day)
           .then((resp) => {
             this.begin = true;
@@ -126,6 +130,8 @@ export default {
 
     // ////USERS//////
     onHastagUser: function() {
+      const input = this.hashtagsForUser;
+      console.log(input);
       UsersService.getUsersHashtags(this.day)
           .then((resp) => {
             this.begin = true;
@@ -136,6 +142,8 @@ export default {
     },
     // ********************
     onTweetUser: function() {
+      const input = this.tweetForUser;
+      console.log(input);
       UsersService.getTweetCountByLang(this.day)
           .then((resp) => {
             this.begin = true;
