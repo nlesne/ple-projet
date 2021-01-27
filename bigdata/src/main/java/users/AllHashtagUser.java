@@ -16,7 +16,7 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class AllHastagUser {
+public class AllHashtagUser {
 	public static class TPMapper extends Mapper<Object, Text, Text, Text> {
 
 		@Override
@@ -78,7 +78,7 @@ public class AllHastagUser {
 		Job job = Job.getInstance(conf, "TwitterProject");
 		job.setNumReduceTasks(1);
 
-		job.setJarByClass(AllHastagUser.class);
+		job.setJarByClass(AllHashtagUser.class);
 
 		job.setInputFormatClass(TextInputFormat.class);
 		TextInputFormat.addInputPath(job, new Path(args[1]));
