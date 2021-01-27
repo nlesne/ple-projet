@@ -87,7 +87,11 @@ public class TweetCountry {
 		job.setJarByClass(TweetCountry.class);
 		
 		job.setInputFormatClass(TextInputFormat.class);
-		TextInputFormat.addInputPath(job, new Path(args[0]));
+		Path inputPath = new Path(args[0]);
+		String[] dateParts = inputPath.getName().split("_");
+		String rowDate = dateParts[1] + "_" + dateParts[2];
+		conf.set("rowDate", rowDate);
+		TextInputFormat.addInputPath(job, inputPath);
 		
 		Configuration hbaseConf  = HBaseConfiguration.create();
 		Connection connection = ConnectionFactory.createConnection(hbaseConf);
