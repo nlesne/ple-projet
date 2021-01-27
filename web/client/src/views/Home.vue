@@ -53,22 +53,17 @@
     <div class="body">
       <div class="title">Résultat : </div>
       <div v-if="begin">
-        <div v-if="val">
-          <ul><li v-for="(name, val) in resultat" :key="name">
-            <div> {{name}} : {{val}} </div>
-          </li></ul>
-        </div>
-        <div v-else>
-          <ul><li v-for="name in resultat" :key="name">
-            <div> {{name}}</div>
-          </li></ul>
-        </div>
+      <div v-for="val in resultat" v-bind:key="val">
+        {{val}}
+      </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import UsersService from '../services/Users';
+import HastagsService from '../services/Hashtags';
 export default {
   name: '',
   props: {},
@@ -79,86 +74,98 @@ export default {
       usersForHashtag: '',
       hashtagsForUser: '',
       tweetForUser: '',
-      val: false,
       begin: false,
       resultat: {
-        type: Object,
+        type: Array,
       },
     };
   },
   components: {},
   methods: {
+
+    // //HASHTAG///////
     onHastagTop: function() {
-      this.begin = true;
-      this.val = true;
+      HastagsService.getTopKHashtagsByDay(this.day)
+          .then((resp) => {
+            this.begin = true;
+            this.resultat = resp.data.result;
+            console.log(resp.data.result);
+          })
+          .catch((err) => console.error(err));
     },
+    // ********************
     onHastagTopKDay: function() {
-      this.begin = true;
-      this.val = true;
-
-      const param = {
-        day: this.day,
-      };
-      console.log(param);
+      HastagsService.getTopKHashtagsByDay(this.day)
+          .then((resp) => {
+            this.begin = true;
+            this.resultat = resp.data.result;
+            console.log(resp.data.result);
+          })
+          .catch((err) => console.error(err));
     },
+    // ********************
     onCountHastag: function() {
-      this.begin = true;
-      this.val = true;
-
-      const param = {
-        day: this.day,
-        val: this.countHashtag,
-      };
-      console.log(param);
+      HastagsService.getHashtagsCount(this.day)
+          .then((resp) => {
+            this.begin = true;
+            this.resultat = resp.data.result;
+            console.log(resp.data.result);
+          })
+          .catch((err) => console.error(err));
     },
+    // ********************
     onUserForHashtag: function() {
-      this.begin = true;
-      this.val = false;
-
-      const param = {
-        day: this.day,
-        val: this.usersForHashtag,
-      };
-      console.log(param);
+      HastagsService.getUsersWithHashtag(this.day)
+          .then((resp) => {
+            this.begin = true;
+            this.resultat = resp.data.result;
+            console.log(resp.data.result);
+          })
+          .catch((err) => console.error(err));
     },
+
+    // ////USERS//////
     onHastagUser: function() {
-      this.begin = true;
-      this.val = false;
-
-      const param = {
-        day: this.day,
-        val: this.hashtagsForUser,
-      };
-      console.log(param);
+      UsersService.getUsersHashtags(this.day)
+          .then((resp) => {
+            this.begin = true;
+            this.resultat = resp.data.result;
+            console.log(resp.data.result);
+          })
+          .catch((err) => console.error(err));
     },
+    // ********************
     onTweetUser: function() {
-      this.begin = true;
-      this.val = true;
-
-      const param = {
-        day: this.day,
-        val: this.tweetForUser,
-      };
-      console.log(param);
+      UsersService.getTweetCountByLang(this.day)
+          .then((resp) => {
+            this.begin = true;
+            this.resultat = resp.data.result;
+            console.log(resp.data.result);
+          })
+          .catch((err) => console.error(err));
     },
+    // ********************
     onTweetCountry: function() {
-      this.begin = true;
-      this.val = true;
-
-      const param = {
-        day: this.day,
-      };
-      console.log(param);
+      UsersService.getTweetCountByCountry(this.day)
+          .then((resp) => {
+            this.begin = true;
+            this.resultat = resp.data.result;
+            console.log(resp.data.result);
+          })
+          .catch((err) => console.error(err));
     },
+    // ********************
     onTweetLanguage: function() {
-      this.begin = true;
-      this.val = true;
-
-      const param = {
-        day: this.day,
-      };
-      console.log(param);
+      UsersService.getTweetCountByLang(this.day)
+          .then((resp) => {
+            this.begin = true;
+            this.resultat = resp.data.result;
+            console.log(resp.data.result);
+          })
+          .catch((err) => console.error(err));
     },
+  },
+  mounted: function() {
   },
 };
 </script>
