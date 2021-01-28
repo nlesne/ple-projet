@@ -8,6 +8,7 @@ import ViewhashtagsForUser from './views/ViewhashtagsForUser';
 import ViewUsersWithHashtag from './views/ViewUsersWithHashtag';
 import ViewcountHashtag from './views/ViewcountHashtag';
 import ViewTopKHashtagsByDay from './views/ViewTopKHashtagsByDay';
+import ViewTopKHashtags from './views/ViewTopKHashtags';
 
 Vue.use(VueRouter);
 
@@ -51,6 +52,11 @@ const routes = [
     path: '/ViewTopKHashtagsByDay',
     name: 'ViewTopKHashtagsByDay',
     component: ViewTopKHashtagsByDay,
+  },
+  {
+    path: '/ViewTopKHashtags',
+    name: 'ViewTopKHashtags',
+    component: ViewTopKHashtags,
   },
 ];
 

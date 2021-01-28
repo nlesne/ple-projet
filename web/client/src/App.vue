@@ -77,7 +77,7 @@ export default {
 
     // //HASHTAG///////
     onHastagTop: function() {
-      this.$router.push('/ViewTopKHashtagsByDay');
+      this.$router.push('/ViewTopKHashtags');
     },
     // ********************
     onHastagTopKDay: function() {
