@@ -2,8 +2,8 @@ import api from '@/services/api';
 
 export default {
 
-    getHashtagsCount(day) {
-      return api().get('hashtags/count', {params: {day : day}});
+    getHashtagsCount(day, hashtag) {
+      return api().get('hashtags/count', {params: {day: day, hashtag: hashtag}});
     },
   
     getUsersWithHashtag(day) {
@@ -13,4 +13,8 @@ export default {
     getTopKHashtagsByDay(day) {
       return api().get('hashtags/topk-day', {params: {day : day}});
     },
+
+    getTopKHashtags(day) {
+        return api().get('hashtags/topk');
+      },
   };

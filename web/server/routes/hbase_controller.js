@@ -1,7 +1,7 @@
 const hbase = require('hbase');
 const config = require('../config/server.config');
 
-function getRowsFromTable(req, res) {
+function getDataByDay(req, res) {
     const client = hbase(config.db_options);
     const paddedDay = req.day.toLocaleString('fr-FR', { minimumIntegerDigits: 2, useGrouping: false });
     const rowFilterValue = paddedDay + "_03.+";
@@ -30,6 +30,30 @@ function getRowsFromTable(req, res) {
                 res.send({ result: parsedRows });
             }
         });
+
+
 }
 
-exports.getRowsFromTable = getRowsFromTable;
+function getDataFromRow(req, res) {
+    const client = hbase(config.db_options);
+    const paddedDay = req.day.padStart(2, "0");
+    const completeRowKey = paddedDay + "_03-" + req.rowKey;
+    client
+        .table('dauriac-lesne-' + req.tableName)
+        .row(completeRowKey)
+        .get('data', {}, (err, value) => {
+            if (err) {
+                res.status(500);
+                res.send(err);
+            }
+            else {
+                let row = {};
+                row[req.rowKey] = value[0].$;
+                res.status(200);
+                res.send(row);
+            }
+        })
+}
+
+exports.getDataByDay = getDataByDay;
+exports.getDataFromRow = getDataFromRow;

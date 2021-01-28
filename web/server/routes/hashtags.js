@@ -5,16 +5,17 @@ router.get('/topk-day', (req, res, next) => {
     req.tableName = 'topKHashtags';
     req.day = req.query.day;
     next();
-}, controller.getRowsFromTable);
+}, controller.getDataByDay);
 router.get('/count', (req, res, next) => {
     req.tableName = 'countHashtags';
     req.day = req.query.day;
+    req.rowKey = req.query.hashtag;
     next();
-}, controller.getRowsFromTable);
+}, controller.getDataFromRow);
 router.get('/users', (req, res, next) => {
     req.tableName = 'hashtagUsers';
     req.day = req.query.day;
     next();
-}, controller.getRowsFromTable);
+}, controller.getDataByDay);
 
 module.exports = router;

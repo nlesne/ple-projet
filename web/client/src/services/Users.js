@@ -2,12 +2,12 @@ import api from '@/services/api';
 
 export default {
 
-  getUsersTweetCount(day) {
-    return api().get('users/count', {params: {day : day}});
+  getUserTweetCount(day, user) {
+    return api().get('users/count', {params: {day : day, user: user}});
   },
 
-  getUsersHashtags(day) {
-    return api().get('users/hashtags', {params: {day : day}});
+  getUserHashtags(day, user) {
+    return api().get('users/hashtags', {params: {day : day, user: user}});
   },
 
   getTweetCountByCountry(day) {
