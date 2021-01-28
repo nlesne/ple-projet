@@ -6,7 +6,7 @@ router.get('/count', (req, res, next) => {
     req.day = req.query.day;
     req.rowKey = req.query.user;
     next();
-}, controller.getDataFromRow);
+}, controller.getValueFromRow);
 router.get('/hashtags', (req, res, next) => {
     req.tableName = 'userHashtags';
     req.day = req.query.day;

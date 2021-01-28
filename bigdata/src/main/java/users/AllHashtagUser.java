@@ -36,7 +36,7 @@ public class AllHashtagUser {
 				return;
 			}
 
-			String user = root.get("user").get("name").asText();
+			String user = root.get("user").get("screen_name").asText();
 			ArrayList<String> hashtags = new ArrayList<>(root.get("entities").get("hashtags").findValuesAsText("text"));		
 			for(String h : hashtags)
 				context.write(new Text(user), new Text(h));

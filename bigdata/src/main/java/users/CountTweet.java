@@ -36,7 +36,7 @@ public class CountTweet {
 	    	  return;
 	      }
 	      
-	      String user = root.get("user").get("name").asText();
+	      String user = root.get("user").get("screen_name").asText();
 	      context.write(new Text(user), new IntWritable(1));
 	    }
 	  }

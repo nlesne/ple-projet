@@ -47,13 +47,33 @@ function getDataFromRow(req, res) {
                 res.send(err);
             }
             else {
-                let row = {};
-                row[req.rowKey] = value[0].$;
+                let rowData = [];
+                rowData = value[0].$.split(' ');
                 res.status(200);
-                res.send(row);
+                res.send({ result: rowData });
             }
         })
 }
 
+function getOneValueFromTable(req, res) {
+    const client = hbase(config.db_options);
+    const paddedDay = req.day.padStart(2, "0");
+    const completeRowKey = paddedDay + "_03-" + req.rowKey;
+    client
+        .table('dauriac-lesne-' + req.tableName)
+        .row(completeRowKey)
+        .get('data', {}, (err, value) => {
+            if (err) {
+                res.status(500);
+                res.send(err);
+            }
+            else {
+                res.status(200);
+                res.send({ result: value[0].$ });
+            }
+        })
+}
+
+exports.getValueFromRow = getOneValueFromTable;
 exports.getDataByDay = getDataByDay;
 exports.getDataFromRow = getDataFromRow;

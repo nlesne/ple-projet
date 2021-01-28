@@ -26,7 +26,7 @@ import hbase.Utils;
 public class UserHashtag {
 	private final static String tableName = Utils.tablePrefix + "hashtagUsers";
 
-	public static class TPMapper extends Mapper<Object, Text, Text, IntWritable> {
+	public static class TPMapper extends Mapper<Object, Text, Text, Text> {
 
 		@Override
 		public void map(Object key, Text value, Context context)
@@ -38,38 +38,44 @@ public class UserHashtag {
 				return;
 			}
 
-			String user = root.get("user").get("name").asText();
+			String user = root.get("user").get("screen_name").asText();
 			ArrayList<String> hashtags = new ArrayList<>(root.get("entities").get("hashtags").findValuesAsText("text"));
-			if (!hashtags.isEmpty()) {
-				context.write(new Text(user), new IntWritable(1));
-			}
+			for(String h : hashtags)
+				context.write(new Text(h), new Text(user));
 		}
 	}
 
-	public static class HashtagCombiner extends Reducer<Text, IntWritable, Text, IntWritable> {        	
+	public static class HashtagCombiner extends Reducer<Text, Text, Text, Text> {        	
 
 		@Override
-		public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-			int sum = 0;
-			for (IntWritable value : values){
-				sum += value.get();
+		public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+			ArrayList<String> list = new ArrayList<String>();
+			for (Text value : values) {
+				String val = value.toString();
+				if (!list.contains(val))
+					list.add(val);
 			}
-			context.write(key, new IntWritable(sum));
+			for(String user : list)
+				context.write(key, new Text(user));
 		}
 	}
 
-	public static class HashtagReducer extends TableReducer<Text, IntWritable, Text> {        	
+	public static class HashtagReducer extends TableReducer<Text, Text, Text> {        	
 
 		@Override
-		public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-			int sum = 0;
-			for (IntWritable value : values){
-				sum += value.get();
+		public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+			ArrayList<String> list = new ArrayList<String>();
+			for (Text value : values) {
+				String val = value.toString();
+				if (!list.contains(val))
+					list.add(val);
 			}
+			String users = String.join(" ", list);
+
 			String rowPrefix = context.getConfiguration().get("rowDate");
 			String rowName = rowPrefix + "-" + key.toString();
 			Put put = new Put(rowName.getBytes());
-			put.addColumn(Bytes.toBytes(Utils.famName), Bytes.toBytes(Utils.colName), Bytes.toBytes(sum));
+			put.addColumn(Bytes.toBytes(Utils.famName), Bytes.toBytes(Utils.colName), Bytes.toBytes(users));
 			context.write(new Text(rowName), put);
 		}
 	}
@@ -94,7 +100,7 @@ public class UserHashtag {
 		// Mapper
 		job.setMapperClass(TPMapper.class);
 		job.setMapOutputKeyClass(Text.class);
-		job.setMapOutputValueClass(IntWritable.class);
+		job.setMapOutputValueClass(Text.class);
 
 		job.setCombinerClass(HashtagCombiner.class);
 		// Reducer
