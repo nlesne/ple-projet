@@ -22,8 +22,8 @@ function getDataByDay(req, res) {
             else {
                 const parsedRows = rows.map(row => {
                     let parsedRow = {};
-                    const realKey = row.key.split('-')[1];
-                    parsedRow[realKey] = row.$;
+                    const hashtag = row.key.split('-')[1];
+                    parsedRow[hashtag] = row.$;
                     return parsedRow;
                 });
                 res.status(200);
@@ -52,7 +52,7 @@ function getDataFromRow(req, res) {
                 res.status(200);
                 res.send({ result: rowData });
             }
-        })
+        });
 }
 
 function getOneValueFromTable(req, res) {
@@ -71,9 +71,52 @@ function getOneValueFromTable(req, res) {
                 res.status(200);
                 res.send({ result: value[0].$ });
             }
-        })
+        });
+}
+// Doesn't work because of async Hbase calls
+function getTopKHashtagsAll(req, res) {
+    const client = hbase(config.db_options);
+    let topKResult = new Map();
+    for (let i = 1; i <= 31; i++) {
+        i = "" + i;
+        const paddedDay = i.padStart(2, "0");
+        const filterValue = paddedDay + "_03.+";
+        const scanOptions = {
+            filter: {
+                "op": "EQUAL",
+                "type": "RowFilter",
+                "comparator": { "value": filterValue, "type": "RegexStringComparator" }
+            },
+            maxVersions: 1
+        };
+        client.table('dauriac-lesne-' + req.tableName)
+            .scan(scanOptions, (err, rows) => {
+                if (err) {
+                    return;
+                }
+                console.log(i);
+                if (rows !== []) {
+                    for (row of rows) {
+                        const hashtag = row.key.split('-')[1];
+                        const previousValue = topKResult.get(hashtag);
+                        if (previousValue) {
+                            topKResult.set(hashtag, previousValue + row.$);
+                        }
+                        else {
+                            topKResult.set(hashtag, Number(row.$));
+                        }
+                    }
+                }
+            });
+    }
+    const topKArray = Array.from(topKResult, (name, value) => ({name, value}));
+    console.log(topKArray);
+    res.status(200);
+    res.send({ result: topKArray });
+
 }
 
+exports.getTopKHashtagsAll = getTopKHashtagsAll;
 exports.getValueFromRow = getOneValueFromTable;
 exports.getDataByDay = getDataByDay;
 exports.getDataFromRow = getDataFromRow;

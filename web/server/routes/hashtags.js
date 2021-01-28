@@ -9,7 +9,7 @@ router.get('/topk-day', (req, res, next) => {
 router.get('/topk', (req, res, next) => {
     req.tableName = 'topKHashtags';
     next();
-}, controller.getDataByDay)
+}, controller.getTopKHashtagsAll)
 router.get('/count', (req, res, next) => {
     req.tableName = 'countHashtags';
     req.day = req.query.day;
