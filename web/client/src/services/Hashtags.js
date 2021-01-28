@@ -2,7 +2,7 @@ import api from '@/services/api';
 
 export default {
 
-    getHashtagsCount(day, hashtag) {
+    getHashtagCount(day, hashtag) {
       return api().get('hashtags/count', {params: {day: day, hashtag: hashtag}});
     },
   

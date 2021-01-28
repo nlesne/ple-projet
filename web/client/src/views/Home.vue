@@ -23,11 +23,10 @@
        <b-button type="is-primary is-info" outlined
        v-on:click="onCountHastag"> valide</b-button>
 
-      <b-field label="Liste d'utilisateur pour un hashtag:">
-        <b-input v-model="usersForHashtag"></b-input>
-      </b-field>
       <b-button type="is-primary is-light" outlined
-        v-on:click="onUserForHashtag"> valide</b-button>
+        v-on:click="onUserForHashtag">
+        Utilisateurs ayant utilisé un hashtag
+        </b-button>
 
       <div class="subtitle"> Users : </div>
 
@@ -62,8 +61,8 @@
 </template>
 
 <script>
-import UsersService from '../services/Users';
-import HastagsService from '../services/Hashtags';
+import Users from '../services/Users';
+import Hashtags from '../services/Hashtags';
 export default {
   name: '',
   props: {},
@@ -85,7 +84,7 @@ export default {
 
     // //HASHTAG///////
     onHastagTop: function() {
-      HastagsService.getTopKHashtagsByDay(this.day)
+      Hashtags.getTopKHashtagsByDay(this.day)
           .then((resp) => {
             this.begin = true;
             this.resultat = resp.data.result;
@@ -95,7 +94,7 @@ export default {
     },
     // ********************
     onHastagTopKDay: function() {
-      HastagsService.getTopKHashtagsByDay(this.day)
+      Hashtags.getTopKHashtagsByDay(this.day)
           .then((resp) => {
             this.begin = true;
             this.resultat = resp.data.result;
@@ -106,8 +105,7 @@ export default {
     // ********************
     onCountHastag: function() {
       const input = this.countHashtag;
-      console.log(input);
-      HastagsService.getHashtagsCount(this.day)
+      Hashtags.getHashtagCount(this.day, input)
           .then((resp) => {
             this.begin = true;
             this.resultat = resp.data.result;
@@ -117,9 +115,7 @@ export default {
     },
     // ********************
     onUserForHashtag: function() {
-      const input = this.usersForHashtag;
-      console.log(input);
-      HastagsService.getUsersWithHashtag(this.day)
+      Hashtags.getUsersWithHashtag(this.day)
           .then((resp) => {
             this.begin = true;
             this.resultat = resp.data.result;
@@ -131,8 +127,7 @@ export default {
     // ////USERS//////
     onHastagUser: function() {
       const input = this.hashtagsForUser;
-      console.log(input);
-      UsersService.getUsersHashtags(this.day)
+      Users.getUserHashtags(this.day, input)
           .then((resp) => {
             this.begin = true;
             this.resultat = resp.data.result;
@@ -143,8 +138,7 @@ export default {
     // ********************
     onTweetUser: function() {
       const input = this.tweetForUser;
-      console.log(input);
-      UsersService.getTweetCountByLang(this.day)
+      Users.getUserTweetCount(this.day, input)
           .then((resp) => {
             this.begin = true;
             this.resultat = resp.data.result;
@@ -154,7 +148,7 @@ export default {
     },
     // ********************
     onTweetCountry: function() {
-      UsersService.getTweetCountByCountry(this.day)
+      Users.getTweetCountByCountry(this.day)
           .then((resp) => {
             this.begin = true;
             this.resultat = resp.data.result;
@@ -164,7 +158,7 @@ export default {
     },
     // ********************
     onTweetLanguage: function() {
-      UsersService.getTweetCountByLang(this.day)
+      Users.getTweetCountByLang(this.day)
           .then((resp) => {
             this.begin = true;
             this.resultat = resp.data.result;
