@@ -135,7 +135,8 @@ public class KHashtags {
 				String rowPrefix = context.getConfiguration().get("rowDate");
 	            String rowName = rowPrefix + "-" + v.getValue();
 				Put put = new Put(rowName.getBytes());
-				put.addColumn(Bytes.toBytes(Utils.famName), Bytes.toBytes(Utils.colName), Bytes.toBytes(v.getKey()));
+				put.addColumn(Bytes.toBytes(Utils.famName), Bytes.toBytes(Utils.colName), 
+						Bytes.toBytes(Integer.toString(v.getKey())));
 				context.write(new Text(rowName), put);
 			}
 		}
